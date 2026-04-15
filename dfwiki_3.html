@@ -614,6 +614,7 @@ const CATS = {
 window.G = {
   behaviors:{}, events:{}, artifacts:{}, keywords:[],
   user:null, curPage:'dashboard', catFilter:'all',
+  evtFilter:'all', atfFilter:'all',
   editingBid:null, detailBid:null, isDark:true,
   sbOpen:true,
 };
@@ -654,6 +655,11 @@ function refreshAll(){
 
 /* ── 페이지 전환 ───────────────────────────────────── */
 function gotoPage(page){
+  if(page!==G.curPage){
+    if(page==='events')    G.evtFilter='all';
+    if(page==='artifacts') G.atfFilter='all';
+    if(page==='behaviors') G.catFilter='all';
+  }
   G.curPage=page;
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.nav button').forEach(b=>b.classList.remove('active'));
@@ -707,12 +713,14 @@ function updateSidebar(){
     );
   } else if(G.curPage==='events'){
     sec.innerHTML='<div class="sidebar-lbl">번대별</div>';
+    addSb(sec,'all','◈','전체',evtList().length,'var(--text2)',()=>filterEvt('all'));
     [['1','프로세스'],['2','파일 시스템'],['3','네트워크'],['4','시스템'],['5','계정']].forEach(([p,lbl])=>
-      addSb(sec,'','●',`${p}000 ${lbl}`,evtList().filter(e=>e.id.replace('EVT-','')[0]===p).length,'var(--purple)',null)
+      addSb(sec,p,'●',`${p}000 ${lbl}`,evtList().filter(e=>e.id.replace('EVT-','')[0]===p).length,'var(--purple)',()=>filterEvt(p))
     );
   } else if(G.curPage==='artifacts'){
     sec.innerHTML='<div class="sidebar-lbl">유형</div>';
-    ['System','App'].forEach(t=>addSb(sec,'','●',t,atfList().filter(a=>a.type===t).length,'var(--teal)',null));
+    addSb(sec,'all','◈','전체',atfList().length,'var(--text2)',()=>filterAtf('all'));
+    ['System','App'].forEach(t=>addSb(sec,t,'●',t,atfList().filter(a=>a.type===t).length,'var(--teal)',()=>filterAtf(t)));
   }
 
   sb.appendChild(sec);
@@ -720,12 +728,18 @@ function updateSidebar(){
 
 function addSb(parent,code,icon,label,cnt,color,cb){
   const btn=document.createElement('button');
-  btn.className='sb-btn'+(G.catFilter===code?' active':'');
+  let isActive=false;
+  if(G.curPage==='behaviors')   isActive=(G.catFilter===code);
+  else if(G.curPage==='events')    isActive=(G.evtFilter===code);
+  else if(G.curPage==='artifacts') isActive=(G.atfFilter===code);
+  btn.className='sb-btn'+(isActive?' active':'');
   btn.innerHTML=`<span style="color:${color};font-size:9px">${icon}</span>${label}<span class="sb-cnt">${cnt}</span>`;
   if(cb) btn.onclick=cb;
   parent.appendChild(btn);
 }
 function filterCat(cat){ G.catFilter=cat; updateSidebar(); renderB(); }
+function filterEvt(p){ G.evtFilter=p; updateSidebar(); renderE(); }
+function filterAtf(t){ G.atfFilter=t; updateSidebar(); renderA(); }
 
 /* ── Auth ──────────────────────────────────────────── */
 let _initialized=false;
@@ -880,6 +894,7 @@ window.renderB=renderB;
 function renderE(){
   const q=(document.getElementById('srch-e')?.value||'').toLowerCase();
   let data=evtList();
+  if(G.evtFilter!=='all') data=data.filter(e=>e.id.replace('EVT-','')[0]===G.evtFilter);
   if(q) data=data.filter(e=>e.id.toLowerCase().includes(q)||e.name.toLowerCase().includes(q)||(e.commonDesc||'').toLowerCase().includes(q));
   const tbody=document.getElementById('tb-e'); tbody.innerHTML='';
   data.forEach(e=>{
@@ -898,6 +913,7 @@ window.renderE=renderE;
 function renderA(){
   const q=(document.getElementById('srch-a')?.value||'').toLowerCase();
   let data=atfList();
+  if(G.atfFilter!=='all') data=data.filter(a=>a.type===G.atfFilter);
   if(q) data=data.filter(a=>a.id.toLowerCase().includes(q)||a.name.toLowerCase().includes(q)||(a.commonDesc||'').toLowerCase().includes(q));
   const tbody=document.getElementById('tb-a'); tbody.innerHTML='';
   data.forEach(a=>{
