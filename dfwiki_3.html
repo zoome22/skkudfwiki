@@ -583,9 +583,18 @@ const gp   = new GoogleAuthProvider();
 
 /* ── DB 헬퍼 ───────────────────────────────────────── */
 const dbRef  = p     => ref(db, p);
-const dbSet  = (p,v) => set(dbRef(p), v);
-const dbDel  = p     => remove(dbRef(p));
-const dbPush = (p,v) => push(dbRef(p), v);
+const dbSet  = (p,v) => set(dbRef(p), v).catch(e=>{
+  console.error('Firebase write error:', e.code, e.message);
+  alert('저장 실패: ' + e.code + '\n' + e.message);
+});
+const dbDel  = p     => remove(dbRef(p)).catch(e=>{
+  console.error('Firebase delete error:', e.code, e.message);
+  alert('삭제 실패: ' + e.code + '\n' + e.message);
+});
+const dbPush = (p,v) => push(dbRef(p), v).catch(e=>{
+  console.error('Firebase push error:', e.code, e.message);
+  alert('저장 실패: ' + e.code + '\n' + e.message);
+});
 const dbKey  = s     => s.replace(/[.\-\/\s]/g,'_');
 
 /* ── 카테고리 상수 ─────────────────────────────────── */
@@ -723,9 +732,10 @@ onAuthStateChanged(auth, user=>{
   const area=document.getElementById('auth-area');
   area.innerHTML=user
     ?`<img class="user-avatar" src="${user.photoURL||''}" onerror="this.style.display='none'" alt="">
-       <span class="user-name">${user.displayName||user.email}</span>
+       <span class="user-name" title="email_verified: ${user.emailVerified}\n${user.email}">${user.displayName||user.email}</span>
        <button class="btn btn-ghost btn-sm" onclick="doSignOut()">로그아웃</button>`
     :`<button class="btn btn-ghost btn-sm" onclick="doSignIn()">Google 로그인</button>`;
+  if(user){ console.log('[Auth] email:', user.email, '| verified:', user.emailVerified, '| uid:', user.uid); }
   const eb=document.getElementById('d-edit-btn');
   if(eb) eb.style.display=user?'':'none';
   if(G.detailBid) refreshDetail();
