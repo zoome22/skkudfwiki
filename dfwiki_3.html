@@ -242,7 +242,7 @@ mark { background:rgba(91,140,255,.18); color:var(--accent); border-radius:3px; 
 .tag-pill button { background:none; border:none; color:var(--accent); cursor:pointer; font-size:12px; padding:0; opacity:.7; }
 .tag-pill button:hover { opacity:1; }
 .tag-input { background:none; border:none; outline:none; color:var(--text); font-size:13px; font-family:'Noto Sans KR',sans-serif; min-width:80px; flex:1; }
-.tag-dd { position:fixed; background:var(--bg2); border:1px solid var(--border2); border-radius:8px; padding:4px; z-index:9999; max-height:170px; overflow-y:auto; box-shadow:var(--shadow); min-width:180px; }
+.tag-dd { position:fixed; background:var(--bg2); border:1px solid var(--border2); border-radius:8px; padding:4px; z-index:10000; max-height:170px; overflow-y:auto; box-shadow:var(--shadow); min-width:180px; }
 .tag-dd-item { padding:7px 10px; border-radius:5px; cursor:pointer; font-size:13px; color:var(--text2); }
 .tag-dd-item:hover { background:var(--bg3); color:var(--text); }
 .tag-dd-item.new-kw { color:var(--accent); font-weight:500; }
@@ -1168,11 +1168,14 @@ window.quickAtf=quickAtf;
 function focusTag(){ document.getElementById('tag-in')?.focus(); }
 function getCurTags(){ return [...document.querySelectorAll('#tag-wrap .tag-pill')].map(p=>p.childNodes[0].textContent.trim()); }
 function addTag(tag){
+  tag = String(tag).trim(); if(!tag) return;
+  const cur=getCurTags(); if(cur.includes(tag)) return;
   const wrap=document.getElementById('tag-wrap'), inp=document.getElementById('tag-in');
   const pill=document.createElement('span'); pill.className='tag-pill';
   pill.innerHTML=`${tag}<button type="button" onclick="rmTag(this)">✕</button>`;
   wrap.insertBefore(pill,inp); inp.value='';
   document.getElementById('tag-dd').style.display='none';
+  inp.focus();
 }
 function addNewTag(){
   const raw=document.getElementById('tag-in').value.trim(); if(!raw) return;
@@ -1201,7 +1204,7 @@ function tagKd(e){
   }
   if(e.key==='Escape') document.getElementById('tag-dd').style.display='none';
 }
-document.addEventListener('click',e=>{
+document.addEventListener('mousedown',e=>{
   if(!e.target.closest('#tag-wrap')&&!e.target.closest('#tag-dd')){
     const d=document.getElementById('tag-dd'); if(d) d.style.display='none';
   }
