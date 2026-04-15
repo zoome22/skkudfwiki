@@ -580,6 +580,8 @@ const app  = initializeApp({
 const db   = getDatabase(app);
 const auth = getAuth(app);
 const gp   = new GoogleAuthProvider();
+gp.addScope('email');
+gp.addScope('profile');
 
 /* ── DB 헬퍼 ───────────────────────────────────────── */
 const dbRef  = p     => ref(db, p);
